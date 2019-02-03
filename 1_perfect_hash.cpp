@@ -21,35 +21,38 @@ public:
 		for (T el: init)
 			buckets[first_hasher(el)].push_back(el);
 		default_random_engine generator(time(0));
-		size_t counter = 1;
+		size_t counter = 1, failed_attempts = 0;
 		for (int i = 0; i < m; ++i)
 		{
 			uniform_int_distribution < int > distribution(0, first_hasher.p - 1);
 			vector < T > bucket = buckets[i];
 			unsigned mj = bucket.size()*bucket.size();
-			hash < T > second_hasher(mj);
 			hashes.push_back(vector < size_t >(mj));
-			size_t temporal_counter;
-			bool flag;
-			do
+			while(true)
 			{
 				fill(hashes[i].begin(), hashes[i].end(), 0);
 				int a = distribution(generator), b = distribution(generator);
-				second_hasher = hash < T >(mj, a, b);
-				temporal_counter = counter;
-				flag = false;
+				hash < T > second_hasher(mj, a, b);
+				size_t temporal_counter = counter;
+				bool flag = true;
 				for (T el: bucket)
 				{
 					size_t temporal_hash = second_hasher(el);
 					if (hashes[i][temporal_hash])
-						flag = true;
+						flag = false;
 					hashes[i][temporal_hash] = temporal_counter++;
 				}
+				if(flag)
+				{
+					second_hashers.push_back(second_hasher);
+					counter = temporal_counter;
+					break;
+				}
+				else
+					++failed_attempts;
 			}
-			while (flag);
-			second_hashers.push_back(second_hasher);
-			counter = temporal_counter;
 		}
+		cout << "Failed attempts: " << failed_attempts << endl;
 	}
 	size_t operator()(const T obj) const
 	{

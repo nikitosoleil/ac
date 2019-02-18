@@ -20,10 +20,24 @@ struct Player
 {
 	string name;
 	Team *team;
-	Player(string n, Team *t) : name(n), team(t) {}
+	Player(string n, Team *t = NULL) : name(n), team(t) {}
+	bool operator<(const Player &p) const
+	{
+		for (int i=0; i<min(name.length(), p.name.length()); ++i)
+			if(name[i] != p.name[i])
+				return name[i] < p.name[i];
+		return name.length() < p.name.length();
+	}
+	bool operator>(const Player &p) const
+	{
+		for (int i = 0; i < min(name.length(), p.name.length()); ++i)
+			if (name[i] != p.name[i])
+				return name[i] > p.name[i];
+		return name.length() > p.name.length();
+	}
 	bool operator==(const Player &p) const
 	{
-		return name == p.name;
+		return name.compare(p.name) == 0;
 	}
 };
 
@@ -31,9 +45,9 @@ struct Football
 {
 	vector < Team * > teams;
 	vector < Player * > players;
-	Football()
+	Football(string path)
 	{
-		ifstream data("../data.csv");
+		ifstream data(path);
 		string line, prv;
 		Team *cur;
 		while (getline(data, line, '\n'))

@@ -20,13 +20,21 @@ struct Player
 {
 	string name;
 	Team *team;
-	Player(string n, Team *t = NULL) : name(n), team(t) {}
+	int pop;
+	Player(string n, Team *t = NULL, int p = 0) : name(n), team(t), pop(p) {}
 	bool operator<(const Player &p) const
 	{
 		for (int i=0; i<min(name.length(), p.name.length()); ++i)
 			if(name[i] != p.name[i])
 				return name[i] < p.name[i];
 		return name.length() < p.name.length();
+	}
+	bool operator<=(const Player &p) const
+	{
+		for (int i = 0; i < min(name.length(), p.name.length()); ++i)
+			if (name[i] != p.name[i])
+				return name[i] < p.name[i];
+		return name.length() <= p.name.length();
 	}
 	bool operator>(const Player &p) const
 	{
@@ -53,9 +61,11 @@ struct Football
 		while (getline(data, line, '\n'))
 		{
 			stringstream line_stream(line);
-			string name, club;
+			string name, club, pop;
 			getline(line_stream, name, ',');
 			getline(line_stream, club, ',');
+			for(int i=0; i<5; ++i) // age, position, cat, market_value, page_views
+				getline(line_stream, pop, ',');
 			if (prv.length())
 			{
 				if (club != prv)
@@ -64,7 +74,7 @@ struct Football
 						teams.push_back(cur);
 					cur = new Team(club);
 				}
-				Player *player = new Player(name, cur);
+				Player *player = new Player(name, cur, stoi(pop));
 				cur->players.push_back(player);
 				players.push_back(player);
 			}

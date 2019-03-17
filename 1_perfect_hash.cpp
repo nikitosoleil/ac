@@ -15,20 +15,20 @@ private:
 	vector < hash < T > > second_hashers;
 	vector < vector < size_t > > hashes;
 public:
-	PerfectHash(vector < T > init, unsigned int m) : first_hasher(hash < T >(m))
+	PerfectHash(const vector < T > &init, unsigned int m) : first_hasher(hash < T >(m))
 	{
 		vector < vector < T > > buckets(m);
 		for (T el: init)
 			buckets[first_hasher(el)].push_back(el);
 		default_random_engine generator(time(0));
 		size_t counter = 1, failed_attempts = 0;
-		for (int i = 0; i < m; ++i)
+		int i = 0;
+		for (vector < T > &bucket: buckets)
 		{
 			uniform_int_distribution < int > distribution(0, first_hasher.p - 1);
-			vector < T > bucket = buckets[i];
 			unsigned mj = bucket.size()*bucket.size();
 			hashes.push_back(vector < size_t >(mj));
-			while(true)
+			while (true)
 			{
 				fill(hashes[i].begin(), hashes[i].end(), 0);
 				int a = distribution(generator), b = distribution(generator);
@@ -42,7 +42,7 @@ public:
 						flag = false;
 					hashes[i][temporal_hash] = temporal_counter++;
 				}
-				if(flag)
+				if (flag)
 				{
 					second_hashers.push_back(second_hasher);
 					counter = temporal_counter;
@@ -51,6 +51,7 @@ public:
 				else
 					++failed_attempts;
 			}
+			++i;
 		}
 		cout << "Failed attempts: " << failed_attempts << endl;
 	}
@@ -64,9 +65,20 @@ public:
 
 int main()
 {
-	Football f;
+	Football f("../data.csv");
 	cout << "Players: " << f.players.size() << endl;
 	PerfectHash < Player * > ph(f.players, 10);
+	vector < Player * > hash_table(f.players.size());
+	for (Player *player: f.players)
+		hash_table[ph(player)] = player;
+	while(true)
+	{
+		string name;
+		cout << "Enter player name: " << endl;
+		getline(cin, name);
+		cout << "Player's team: " << hash_table[ph(new Player(name))]->team->name << endl;
+	}
+	/*
 	vector <size_t> phs;
 	for (Player *player: f.players)
 	{
@@ -77,5 +89,6 @@ int main()
 	cout << "All hashes: " << endl;
 	for(auto it: phs)
 		cout << it << ' ';
+	*/
 	return 0;
 }
